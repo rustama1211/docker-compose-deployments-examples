@@ -70,7 +70,7 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
       (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.method"] // "") == "" and
       (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.status"] // "") == ""
     ) then
-      empty
+      null
     else
       {
         path: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.path"] // ""),
@@ -104,7 +104,7 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
     ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.sameSite"] // "" ) as $sameSite |
     ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.maxAge"] // "" ) as $maxAge |
     if ($enabled == "" and $name == "" and $secure == "" and $httpOnly == "" and $sameSite == "" and $maxAge == "") then
-      empty
+      null
     else
       { cookie: (
           {}

@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.secure=true" # optional
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.httpOnly=true" # optional
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.sameSite=strict" # optional (none|lax|strict)
-    #      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
     deploy:
       replicas: 2
     restart: unless-stopped

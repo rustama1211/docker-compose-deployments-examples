@@ -1,7 +1,7 @@
 services:
   helloworld:
     build:
-      context: ./hello-world 
+      context: ./hello-world
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
@@ -22,6 +22,13 @@ services:
       - "traefik.http.services.helloworld.loadbalancer.healthCheck.followRedirects=true" # optional
       - "traefik.http.services.helloworld.loadbalancer.healthCheck.method=GET" # optional
       - "traefik.http.services.helloworld.loadbalancer.healthCheck.status=200" # optional
+
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie=true" # optional
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.name=helloworld_sticky" # optional
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.secure=true" # optional
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.httpOnly=true" # optional
+      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.sameSite=strict" # optional (none|lax|strict)
+    #      - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
     deploy:
       replicas: 2
     restart: unless-stopped
@@ -46,19 +53,25 @@ services:
       - "traefik.http.services.helloworld-front.loadbalancer.healthCheck.path=/" # optional
       - "traefik.http.services.helloworld-front.loadbalancer.healthCheck.interval=10s" # optional
       - "traefik.http.services.helloworld-front.loadbalancer.healthCheck.timeout=1s" # optional
+
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie=true" # optional
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.name=helloworld_front_sticky" # optional
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.secure=true" # optional
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.httpOnly=true" # optional
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.sameSite=strict" # optional (none|lax|strict)
+      - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
     deploy:
       replicas: 2
     restart: unless-stopped
     networks:
       - traefik
 
-
-# Previously, all Traefik config was mounted from one folder.
-# To support static config too, we now load static config as a dedicated file
-# and mount dynamic config as a dedicated directory, because file provider watch
-# is reliable for dynamic updates only when the dynamic config is mounted as a folder.
+  # Previously, all Traefik config was mounted from one folder.
+  # To support static config too, we now load static config as a dedicated file
+  # and mount dynamic config as a dedicated directory, because file provider watch
+  # is reliable for dynamic updates only when the dynamic config is mounted as a folder.
   traefik-proxy:
-    image: traefik:v3.3.4
+    image: traefik:v3.6
     command:
       - --configFile=/etc/traefik/traefik.static.yml
       # - --providers.docker=true (optional for specific needs)
@@ -66,8 +79,8 @@ services:
       # - --providers.docker.exposedbydefault=false
     restart: unless-stopped
     ports:
-      - "8000:80"
-      - "8080:8080"
+      - "8089:80"
+      - "8088:8080"
     volumes:
       - ./traefik-static/traefik.static.yml:/etc/traefik/traefik.static.yml:ro
       - ./traefik:/etc/traefik/dynamic:ro

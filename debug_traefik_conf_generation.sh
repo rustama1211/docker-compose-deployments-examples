@@ -144,6 +144,12 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
         if $pri != "" then .http.routers[$svc].priority = ($pri | tonumber) else . end
       ) |
 
+      # ruleSyntax (v3)
+      (($item["traefik.http.routers.\($svc).rulesyntax"] // "") as $rs |
+        debug("ruleSyntax: \($rs | if . == "" then "none" else . end)", "") |
+        if $rs != "" then .http.routers[$svc].ruleSyntax = $rs else . end
+      ) |
+
       # TLS — generic: handles tls, tls.certresolver, tls.options,
       #   tls.domains[n].main, tls.domains[n].sans, etc.
       ( . as $state |
@@ -171,8 +177,13 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
       debug("responseForwarding.flushInterval: \($item["traefik.http.services.\($svc).loadbalancer.responseforwarding.flushinterval"] // "none")", "") |
 
       (($item["traefik.http.services.\($svc).loadbalancer.server.scheme"] // "http") as $scheme |
+        ($item["traefik.http.services.\($svc).loadbalancer.server.weight"] // "") as $weight |
+        debug("Server weight: \($weight | if . == "" then "none" else . end)", "") |
         .http.services[$svc].loadBalancer.servers =
-          (split_ips[$svc] | map({url: ($scheme + "://" + . + ":" + ($item["traefik.http.services.\($svc).loadbalancer.server.port"] // "80"))}))
+          (split_ips[$svc] | map(
+            {url: ($scheme + "://" + . + ":" + ($item["traefik.http.services.\($svc).loadbalancer.server.port"] // "80"))}
+            + (if $weight != "" then {weight: ($weight | tonumber)} else {} end)
+          ))
       ) |
 
       (($item["traefik.http.services.\($svc).loadbalancer.passhostheader"] // "") as $pph |
@@ -213,6 +224,18 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
           debug("No sticky session labels found for service: \($svc)", "") |
           .
         end
+      ) |
+
+      # strategy (v3: wrr, p2c, hrw, leasttime)
+      (($item["traefik.http.services.\($svc).loadbalancer.strategy"] // "") as $strategy |
+        debug("Strategy: \($strategy | if . == "" then "none" else . end)", "") |
+        if $strategy != "" then .http.services[$svc].loadBalancer.strategy = $strategy else . end
+      ) |
+
+      # serversTransport
+      (($item["traefik.http.services.\($svc).loadbalancer.serverstransport"] // "") as $st |
+        debug("serversTransport: \($st | if . == "" then "none" else . end)", "") |
+        if $st != "" then .http.services[$svc].loadBalancer.serversTransport = $st else . end
       ) |
 
       # ── HTTP Middlewares (generic) ─────────────────────────────────────

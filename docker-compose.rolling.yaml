@@ -29,6 +29,12 @@ services:
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.httpOnly=true" # optional
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.sameSite=strict" # optional (none|lax|strict)
       - "traefik.http.services.helloworld.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
+
+      # v3 labels (optional)
+      - "traefik.http.routers.helloworld.ruleSyntax=v3" # optional (v2|v3)
+      - "traefik.http.services.helloworld.loadbalancer.strategy=p2c" # optional (wrr|p2c|hrw|leasttime)
+      - "traefik.http.services.helloworld.loadbalancer.server.weight=1" # optional (used with wrr strategy)
+      - "traefik.http.services.helloworld.loadbalancer.serversTransport=my-transport" # optional
     deploy:
       replicas: 2
     restart: unless-stopped
@@ -60,6 +66,12 @@ services:
       - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.httpOnly=true" # optional
       - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.sameSite=strict" # optional (none|lax|strict)
       - "traefik.http.services.helloworld-front.loadbalancer.sticky.cookie.maxAge=86400" # optional (seconds)
+
+      # v3 labels (optional)
+      - "traefik.http.routers.helloworld-front.ruleSyntax=v3" # optional (v2|v3)
+      - "traefik.http.services.helloworld-front.loadbalancer.strategy=p2c" # optional (wrr|p2c|hrw|leasttime)
+      - "traefik.http.services.helloworld-front.loadbalancer.server.weight=1" # optional (used with wrr strategy)
+      - "traefik.http.services.helloworld-front.loadbalancer.serversTransport=my-transport" # optional
     deploy:
       replicas: 2
     restart: unless-stopped

@@ -58,34 +58,36 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
     split(",") | map(gsub("^\\s+"; "") | gsub("\\s+$"; ""));
 
   def extract_health_check(item):
+    # Input lookups use lowercase (keys are normalized upstream).
+    # Output field names stay camelCase to match the Traefik config schema.
     if (
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.path"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.interval"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.timeout"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.scheme"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.mode"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.hostname"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.port"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.followRedirects"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.method"] // "") == "" and
-      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.status"] // "") == ""
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.path"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.interval"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.timeout"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.scheme"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.mode"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.hostname"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.port"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.followredirects"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.method"] // "") == "" and
+      (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.status"] // "") == ""
     ) then
       null
     else
       {
-        path: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.path"] // ""),
-        interval: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.interval"] // ""),
-        timeout: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.timeout"] // ""),
-        scheme: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.scheme"] // ""),
-        mode: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.mode"] // ""),
-        hostname: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.hostname"] // ""),
-        port: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.port"] // ""),
-        followRedirects: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.followRedirects"] // ""),
-        method: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.method"] // ""),
-        status: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.status"] // ""),
+        path: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.path"] // ""),
+        interval: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.interval"] // ""),
+        timeout: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.timeout"] // ""),
+        scheme: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.scheme"] // ""),
+        mode: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.mode"] // ""),
+        hostname: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.hostname"] // ""),
+        port: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.port"] // ""),
+        followRedirects: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.followredirects"] // ""),
+        method: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.method"] // ""),
+        status: (item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.status"] // ""),
         headers: (
           item | to_entries |
-          map(select(.key | startswith("traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthCheck.headers."))) |
+          map(select(.key | startswith("traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.healthcheck.headers."))) |
           map({
             key: (.key | split(".") | .[-1]),
             value: .value
@@ -97,12 +99,14 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
     end;
 
   def extract_sticky(item):
+    # Input lookups use lowercase (keys are normalized upstream).
+    # Output field names stay camelCase to match the Traefik config schema.
     ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie"] // "" ) as $enabled |
     ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.name"] // "" ) as $name |
     ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.secure"] // "" ) as $secure |
-    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.httpOnly"] // "" ) as $httpOnly |
-    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.sameSite"] // "" ) as $sameSite |
-    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.maxAge"] // "" ) as $maxAge |
+    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.httponly"] // "" ) as $httpOnly |
+    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.samesite"] // "" ) as $sameSite |
+    ( item["traefik.http.services." + item["com.docker.compose.service"] + ".loadbalancer.sticky.cookie.maxage"] // "" ) as $maxAge |
     if ($enabled == "" and $name == "" and $secure == "" and $httpOnly == "" and $sameSite == "" and $maxAge == "") then
       null
     else
@@ -118,55 +122,76 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
     end;
 
   reduce .[] as $item ({};
+    # Normalize label keys to lowercase so lookups are case-insensitive,
+    # mirroring the Traefik docker provider. Users can write labels in the
+    # camelCase form shown in the official docs (ruleSyntax, serversTransport,
+    # passHostHeader, httpOnly, sameSite, maxAge, followRedirects, ...) and
+    # still match.
+    ($item | to_entries | map(.key |= ascii_downcase) | from_entries) as $item |
     ($item["com.docker.compose.service"]) as $svc |
     if ($svc | in(split_ips)) then
       debug("Service: \($svc)", "") |
       debug("Labels: \($item | tostring)", "") |
 
-      # ── HTTP Router ────────────────────────────────────────────────────
+      # ── HTTP Routers (generic) ─────────────────────────────────────────
+      # Router names are discovered from label keys, so one compose service
+      # can declare multiple routers under arbitrary names (e.g. "catchall"),
+      # not just a router matching the compose service name.
 
-      debug("Rule: \($item["traefik.http.routers.\($svc).rule"] | tostring)", "") |
-      debug("EntryPoints: \($item["traefik.http.routers.\($svc).entrypoints"] // "none")", "") |
-      debug("Middlewares: \($item["traefik.http.routers.\($svc).middlewares"] // "none")", "") |
-      debug("Router TLS: \($item["traefik.http.routers.\($svc).tls"] // "none")", "") |
-      debug("Router TLS certresolver: \($item["traefik.http.routers.\($svc).tls.certresolver"] // "none")", "") |
-
-      .http.routers[$svc].rule = ($item["traefik.http.routers.\($svc).rule"] // null) |
-      .http.routers[$svc].service = ($item["traefik.http.routers.\($svc).service"] // $svc) |
-
-      (($item["traefik.http.routers.\($svc).entrypoints"] // "") as $ep |
-        if $ep != "" then .http.routers[$svc].entryPoints = ($ep | csv_to_array) else . end
-      ) |
-      (($item["traefik.http.routers.\($svc).middlewares"] // "") as $mw |
-        if $mw != "" then .http.routers[$svc].middlewares = ($mw | csv_to_array) else . end
-      ) |
-      (($item["traefik.http.routers.\($svc).priority"] // "") as $pri |
-        if $pri != "" then .http.routers[$svc].priority = ($pri | tonumber) else . end
-      ) |
-
-      # ruleSyntax (v3)
-      (($item["traefik.http.routers.\($svc).rulesyntax"] // "") as $rs |
-        debug("ruleSyntax: \($rs | if . == "" then "none" else . end)", "") |
-        if $rs != "" then .http.routers[$svc].ruleSyntax = $rs else . end
-      ) |
-
-      # TLS — generic: handles tls, tls.certresolver, tls.options,
-      #   tls.domains[n].main, tls.domains[n].sans, etc.
       ( . as $state |
-        [ $item | to_entries[] | select(.key | startswith("traefik.http.routers.\($svc).tls")) ] |
-        if length > 0 then
-          reduce .[] as $e (
-            $state;
-            if $e.key == "traefik.http.routers.\($svc).tls" then
-              if ($e.value == "true" and (.http.routers[$svc].tls == null)) then
-                .http.routers[$svc].tls = {}
-              else . end
-            else
-              ( $e.key | ltrimstr("traefik.http.routers.\($svc).") | to_nested_path ) as $path |
-              setpath(["http","routers",$svc] + $path; ($e.value | coerce_value))
-            end
+        [ $item | keys[] | select(startswith("traefik.http.routers.")) | split(".")[3] ] | unique |
+        reduce .[] as $rtr ($state;
+
+          debug("HTTP router detected: \($rtr)", "") |
+          debug("Rule: \($item["traefik.http.routers.\($rtr).rule"] | tostring)", "") |
+          debug("EntryPoints: \($item["traefik.http.routers.\($rtr).entrypoints"] // "none")", "") |
+          debug("Middlewares: \($item["traefik.http.routers.\($rtr).middlewares"] // "none")", "") |
+          debug("Router TLS: \($item["traefik.http.routers.\($rtr).tls"] // "none")", "") |
+          debug("Router TLS certresolver: \($item["traefik.http.routers.\($rtr).tls.certresolver"] // "none")", "") |
+
+          # rule
+          ( ($item["traefik.http.routers.\($rtr).rule"] // "") as $rule |
+            if $rule != "" then .http.routers[$rtr].rule = $rule else . end
+          ) |
+
+          # service: explicit override or default to compose service name
+          .http.routers[$rtr].service = ($item["traefik.http.routers.\($rtr).service"] // $svc) |
+
+          (($item["traefik.http.routers.\($rtr).entrypoints"] // "") as $ep |
+            if $ep != "" then .http.routers[$rtr].entryPoints = ($ep | csv_to_array) else . end
+          ) |
+          (($item["traefik.http.routers.\($rtr).middlewares"] // "") as $mw |
+            if $mw != "" then .http.routers[$rtr].middlewares = ($mw | csv_to_array) else . end
+          ) |
+          (($item["traefik.http.routers.\($rtr).priority"] // "") as $pri |
+            if $pri != "" then .http.routers[$rtr].priority = ($pri | tonumber) else . end
+          ) |
+
+          # ruleSyntax (v3)
+          (($item["traefik.http.routers.\($rtr).rulesyntax"] // "") as $rs |
+            debug("ruleSyntax: \($rs | if . == "" then "none" else . end)", "") |
+            if $rs != "" then .http.routers[$rtr].ruleSyntax = $rs else . end
+          ) |
+
+          # TLS — generic: handles tls, tls.certresolver, tls.options,
+          #   tls.domains[n].main, tls.domains[n].sans, etc.
+          ( . as $state2 |
+            [ $item | to_entries[] | select(.key | startswith("traefik.http.routers.\($rtr).tls")) ] |
+            if length > 0 then
+              reduce .[] as $e (
+                $state2;
+                if $e.key == "traefik.http.routers.\($rtr).tls" then
+                  if ($e.value == "true" and (.http.routers[$rtr].tls == null)) then
+                    .http.routers[$rtr].tls = {}
+                  else . end
+                else
+                  ( $e.key | ltrimstr("traefik.http.routers.\($rtr).") | to_nested_path ) as $path |
+                  setpath(["http","routers",$rtr] + $path; ($e.value | coerce_value))
+                end
+              )
+            else $state2 end
           )
-        else $state end
+        )
       ) |
 
       # ── HTTP Service ───────────────────────────────────────────────────
@@ -193,11 +218,11 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
         if $fi != "" then .http.services[$svc].loadBalancer.responseForwarding.flushInterval = $fi else . end
       ) |
 
-      debug("HealthCheck Path: \($item["traefik.http.services." + $svc + ".loadbalancer.healthCheck.path"] // "none")", "") |
-      debug("HealthCheck Interval: \($item["traefik.http.services." + $svc + ".loadbalancer.healthCheck.interval"] // "none")", "") |
-      debug("HealthCheck Timeout: \($item["traefik.http.services." + $svc + ".loadbalancer.healthCheck.timeout"] // "none")", "") |
+      debug("HealthCheck Path: \($item["traefik.http.services." + $svc + ".loadbalancer.healthcheck.path"] // "none")", "") |
+      debug("HealthCheck Interval: \($item["traefik.http.services." + $svc + ".loadbalancer.healthcheck.interval"] // "none")", "") |
+      debug("HealthCheck Timeout: \($item["traefik.http.services." + $svc + ".loadbalancer.healthcheck.timeout"] // "none")", "") |
       debug("Extracting headers for service: \($svc)", "") |
-      debug("Headers: \($item | to_entries | map(select(.key | startswith("traefik.http.services." + $svc + ".loadbalancer.healthCheck.headers."))) | .[] | "\(.key) = \(.value)")", "") |
+      debug("Headers: \($item | to_entries | map(select(.key | startswith("traefik.http.services." + $svc + ".loadbalancer.healthcheck.headers."))) | .[] | "\(.key) = \(.value)")", "") |
 
       debug("Calling extract_health_check for service: \($svc)", "") |
       (extract_health_check($item) as $hc |
@@ -211,9 +236,9 @@ docker ps -q | xargs -I {} docker inspect --format '{{json .Config.Labels}}' {} 
       debug("Sticky cookie enabled: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie"] // "none")", "") |
       debug("Sticky cookie name: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.name"] // "none")", "") |
       debug("Sticky cookie secure: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.secure"] // "none")", "") |
-      debug("Sticky cookie httpOnly: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.httpOnly"] // "none")", "") |
-      debug("Sticky cookie sameSite: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.sameSite"] // "none")", "") |
-      debug("Sticky cookie maxAge: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.maxAge"] // "none")", "") |
+      debug("Sticky cookie httpOnly: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.httponly"] // "none")", "") |
+      debug("Sticky cookie sameSite: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.samesite"] // "none")", "") |
+      debug("Sticky cookie maxAge: \($item["traefik.http.services." + $svc + ".loadbalancer.sticky.cookie.maxage"] // "none")", "") |
 
       debug("Calling extract_sticky for service: \($svc)", "") |
       (extract_sticky($item) as $sticky |
